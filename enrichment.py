@@ -1,415 +1,184 @@
 """
 Enrichment Feature Implementation for hrd-parp-triager-agent.
 Generated based on domain-specific requirements in specifications.
+
+All domain engines share a common threshold-based evaluation strategy and are
+instantiated via the generic `DomainEngine` class. Legacy result dataclasses
+are retained for backward compatibility with the test suite.
 """
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 import datetime
-import math
-import json
+
 
 # =============================================================================
-# 1. OVERVIEW
+# Shared result type
 # =============================================================================
 @dataclass
-class OverviewEngineResult:
+class EngineResult:
+    """Shared result type for all domain enrichment engines."""
+    feature_name: str = "Domain Engine"
+    status: str = "OPTIMAL"
+    score: float = 0.0
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    alerts: List[str] = field(default_factory=list)
+    recommendations: List[str] = field(default_factory=list)
+    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
+
+
+# =============================================================================
+# Legacy result dataclasses (kept for backward compatibility with existing tests)
+# =============================================================================
+@dataclass
+class OverviewEngineResult(EngineResult):
     feature_name: str = "Overview"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
-class OverviewEngine:
-    """
-    Overview: Detailed implementation plan for the 4 enrichment ideas assigned to this project. Each idea includes concrete module cha
-    """
-    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[OverviewEngineResult] = []
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> OverviewEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
-
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Overview: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Overview: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = OverviewEngineResult(
-            feature_name="Overview",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 2. PHARMACOGENOMIC DRUG METABOLISM INTEGRATION
-# =============================================================================
 @dataclass
-class PharmacogenomicDrugMetabolismIntegrationEngineResult:
+class PharmacogenomicDrugMetabolismIntegrationEngineResult(EngineResult):
     feature_name: str = "Pharmacogenomic Drug Metabolism Integration"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
-class PharmacogenomicDrugMetabolismIntegrationEngine:
-    """
-    Pharmacogenomic Drug Metabolism Integration: Pharmacogenomic Drug Metabolism Integration
-    """
-    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[PharmacogenomicDrugMetabolismIntegrationEngineResult] = []
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> PharmacogenomicDrugMetabolismIntegrationEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
-
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Pharmacogenomic Drug Metabolism Integration: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Pharmacogenomic Drug Metabolism Integration: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = PharmacogenomicDrugMetabolismIntegrationEngineResult(
-            feature_name="Pharmacogenomic Drug Metabolism Integration",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 3. GOAL
-# =============================================================================
 @dataclass
-class GoalEngineResult:
+class GoalEngineResult(EngineResult):
     feature_name: str = "Goal"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
-class GoalEngine:
-    """
-    Goal: Integrate CPIC guidelines for PARP inhibitor metabolism (CYP3A4-mediated) with treatment selection and dose optimization
-    """
-    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[GoalEngineResult] = []
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> GoalEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
-
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Goal: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Goal: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = GoalEngineResult(
-            feature_name="Goal",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 4. DATA MODEL CHANGES
-# =============================================================================
 @dataclass
-class DataModelChangesEngineResult:
+class DataModelChangesEngineResult(EngineResult):
     feature_name: str = "Data Model Changes"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
-class DataModelChangesEngine:
-    """
-    Data Model Changes: **New file**: `hrd_parp_triager_agent/models.py` additions
-    """
-    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[DataModelChangesEngineResult] = []
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> DataModelChangesEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
-
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Data Model Changes: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Data Model Changes: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = DataModelChangesEngineResult(
-            feature_name="Data Model Changes",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 5. KNOWLEDGE BASE
-# =============================================================================
 @dataclass
-class KnowledgeBaseEngineResult:
+class KnowledgeBaseEngineResult(EngineResult):
     feature_name: str = "Knowledge Base"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
-class KnowledgeBaseEngine:
-    """
-    Knowledge Base: **New file**: `hrd_parp_triager_agent/pgx_kb.py`
-    """
-    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[KnowledgeBaseEngineResult] = []
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> KnowledgeBaseEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
-
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Knowledge Base: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Knowledge Base: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = KnowledgeBaseEngineResult(
-            feature_name="Knowledge Base",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 6. AGENT CHANGES
-# =============================================================================
 @dataclass
-class AgentChangesEngineResult:
+class AgentChangesEngineResult(EngineResult):
     feature_name: str = "Agent Changes"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
-class AgentChangesEngine:
-    """
-    Agent Changes: **Modify**: `PARPResponsePredictorAgent` in `hrd_parp_triager_agent/agents.py`
-    """
-    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[AgentChangesEngineResult] = []
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> AgentChangesEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
-
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Agent Changes: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Agent Changes: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = AgentChangesEngineResult(
-            feature_name="Agent Changes",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 7. GENERATE DOSE ADJUSTMENT RECOMMENDATIONS
-# =============================================================================
 @dataclass
-class GenerateDoseAdjustmentRecommendationsEngineResult:
+class GenerateDoseAdjustmentRecommendationsEngineResult(EngineResult):
     feature_name: str = "Generate dose adjustment recommendations"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
-class GenerateDoseAdjustmentRecommendationsEngine:
-    """
-    Generate dose adjustment recommendations: - Output: `PARPiPharmacogenomicProfile`
-    """
-    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[GenerateDoseAdjustmentRecommendationsEngineResult] = []
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> GenerateDoseAdjustmentRecommendationsEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
-
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Generate dose adjustment recommendations: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Generate dose adjustment recommendations: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = GenerateDoseAdjustmentRecommendationsEngineResult(
-            feature_name="Generate dose adjustment recommendations",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 8. API CHANGES
-# =============================================================================
 @dataclass
-class ApiChangesEngineResult:
+class ApiChangesEngineResult(EngineResult):
     feature_name: str = "API Changes"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
-class ApiChangesEngine:
+
+# =============================================================================
+# Generic domain engine
+# =============================================================================
+class DomainEngine:
     """
-    API Changes: **New endpoint**: `POST /api/v1/parpi-pgx`
+    Threshold-based evaluation engine used by all domain enrichment features.
+
+    The evaluate() method compares the primary value against a baseline threshold:
+      - value > 2 * threshold  -> CRITICAL_ALERT
+      - value > threshold      -> WARNING
+      - otherwise              -> OPTIMAL
     """
-    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+
+    def __init__(self, feature_name: str, threshold: float = 1.0,
+                 config: Optional[Dict[str, Any]] = None):
+        self.feature_name = feature_name
         self.threshold = threshold
         self.config = config or {}
-        self.history: List[ApiChangesEngineResult] = []
+        self.history: List[EngineResult] = []
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> ApiChangesEngineResult:
-        alerts = []
-        recs = []
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0,
+                 **kwargs) -> EngineResult:
+        alerts: List[str] = []
+        recs: List[str] = []
         status = "OPTIMAL"
         score = round(float(primary_value), 3)
 
-        if primary_value > self.threshold * 2:
+        critical_limit = self.threshold * 2
+        if primary_value > critical_limit:
             status = "CRITICAL_ALERT"
-            alerts.append(f"API Changes: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
+            alerts.append(
+                f"{self.feature_name}: Primary value {primary_value:.2f} "
+                f"breached critical threshold ({critical_limit:.2f})"
+            )
             recs.append("Initiate immediate protocol review and escalate to attending lead.")
         elif primary_value > self.threshold:
             status = "WARNING"
-            alerts.append(f"API Changes: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
+            alerts.append(
+                f"{self.feature_name}: Value {primary_value:.2f} "
+                f"exceeds baseline threshold ({self.threshold:.2f})"
+            )
             recs.append("Increase monitoring frequency and perform secondary verification.")
         else:
             recs.append("Parameters nominal under standard operating bounds.")
 
-        res = ApiChangesEngineResult(
-            feature_name="API Changes",
+        res = EngineResult(
+            feature_name=self.feature_name,
             status=status,
             score=score,
             metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
             alerts=alerts,
-            recommendations=recs
+            recommendations=recs,
         )
         self.history.append(res)
         return res
 
+
 # =============================================================================
-# COMPOSITE ENRICHMENT SUITE
+# Legacy engine wrappers (thin subclasses for backward compatibility)
+# =============================================================================
+class OverviewEngine(DomainEngine):
+    """Overview: Detailed implementation plan for the 4 enrichment ideas assigned to this project."""
+    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        super().__init__("Overview", threshold, config)
+
+
+class PharmacogenomicDrugMetabolismIntegrationEngine(DomainEngine):
+    """Pharmacogenomic Drug Metabolism Integration."""
+    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        super().__init__("Pharmacogenomic Drug Metabolism Integration", threshold, config)
+
+
+class GoalEngine(DomainEngine):
+    """Goal: Integrate CPIC guidelines for PARP inhibitor metabolism (CYP3A4-mediated)."""
+    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        super().__init__("Goal", threshold, config)
+
+
+class DataModelChangesEngine(DomainEngine):
+    """Data Model Changes: New file: `hrd_parp_triager_agent/models.py` additions."""
+    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        super().__init__("Data Model Changes", threshold, config)
+
+
+class KnowledgeBaseEngine(DomainEngine):
+    """Knowledge Base: New file: `hrd_parp_triager_agent/pgx_kb.py`."""
+    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        super().__init__("Knowledge Base", threshold, config)
+
+
+class AgentChangesEngine(DomainEngine):
+    """Agent Changes: Modify: `PARPResponsePredictorAgent`."""
+    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        super().__init__("Agent Changes", threshold, config)
+
+
+class GenerateDoseAdjustmentRecommendationsEngine(DomainEngine):
+    """Generate dose adjustment recommendations: Output: `PARPiPharmacogenomicProfile`."""
+    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        super().__init__("Generate dose adjustment recommendations", threshold, config)
+
+
+class ApiChangesEngine(DomainEngine):
+    """API Changes: New endpoint: `POST /api/v1/parpi-pgx`."""
+    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        super().__init__("API Changes", threshold, config)
+
+
+# =============================================================================
+# Composite enrichment suite
 # =============================================================================
 class HrdparptriageragentEnrichmentSuite:
     """Master coordinator executing all enriched domain features."""
@@ -434,6 +203,7 @@ class HrdparptriageragentEnrichmentSuite:
         results["GenerateDoseAdjustmentRecommendationsEngine"] = self.generatedoseadjustme.evaluate(primary_val, secondary_val)
         results["ApiChangesEngine"] = self.apichangesengine.evaluate(primary_val, secondary_val)
         return results
+
 
 # Global instance
 enrichment_suite = HrdparptriageragentEnrichmentSuite()
