@@ -40,7 +40,7 @@ jobs:
 
     - name: Audit signature tamper check
       run: |
-        python -c "
+        python - <<'PY'
         from agents.base import AuditTrail
         trail = AuditTrail(secret_key="ci-test-only")
         trail.log("CI", "tester", "CHECK", {"sample": 1})
@@ -48,4 +48,4 @@ jobs:
         trail.logs[0]["event_type"] = "TAMPERED"
         assert not trail.verify_integrity()
         print("Audit HMAC integrity check passed")
-        "
+        PY
