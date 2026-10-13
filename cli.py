@@ -6,6 +6,7 @@ import csv
 import json
 import sys
 import tempfile
+import re
 from pathlib import Path
 from agents.models import SystemTaskPayload
 from agents.supervisor import SystemSupervisor
@@ -93,7 +94,10 @@ def main(argv=None):
         # Prevent path traversal in output: write only to current working directory or system temp
         cwd = Path.cwd().resolve()
         tmp = Path(tempfile.gettempdir()).resolve()
-        if not (str(output_path).startswith(str(cwd)) or str(output_path).startswith(str(tmp))):
+        # Reject drive-qualified Windows paths even on POSIX (where they look relative).
+        # Use path ancestry, never a string prefix, to prevent sibling-prefix bypasses.
+        windows_drive_path = bool(re.match(r"^[A-Za-z]:[\\/]", args.output))
+        if windows_drive_path or not (output_path.is_relative_to(cwd) or output_path.is_relative_to(tmp)):
             print(f"Error: Output path must be within the current working directory or system temp. Got: {output_path}", file=sys.stderr)
             return 1
 
@@ -102,7 +106,7 @@ def main(argv=None):
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
 
-        out_fields = fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]))
         out_rows = []
         errors = []
         for idx, r in enumerate(rows):
@@ -123,7 +127,7 @@ def main(argv=None):
                 row_dict["audit_hash"] = dossier.audit_hash
                 out_rows.append(row_dict)
             except (ValueError, TypeError) as e:
-                errors.append(f"Row {idx + 1}: {e}")
+                errors.append(f"Row {idx + 1}: invalid input")
 
         with open(output_path, mode="w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=out_fields)
