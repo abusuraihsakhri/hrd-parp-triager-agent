@@ -35,6 +35,9 @@ jobs:
       run: |
         pytest -v
 
+    - name: Run browser demonstration smoke test
+      run: node tests/web_smoke.cjs
+
     - name: Security SAST & Zero-PHI Audit
       run: |
         python -c "
