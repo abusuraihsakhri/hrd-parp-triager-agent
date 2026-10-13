@@ -164,7 +164,7 @@ class HRDCoordinator:
         if "summary" in q or "status" in q:
             return f"HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent currently tracking {len(self.case_registry)} cases in local air-gapped memory."
         elif "guidelines" in q or "protocol" in q:
-            return "All sub-agents operate under validated consensus clinical algorithms and CAP/CLSI/NCCN/WHO standards."
+            return "This demonstration does not implement validated clinical guidelines or standards."
         else:
             return f"HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent executive agent online. Continuous supervisory monitoring active across all domain parameters."
 
