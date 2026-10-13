@@ -1,236 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hrd Parp Triager Engine — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>HRD/PARP Triager — Demonstration Console</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #e9eef7; background: #0b1220; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.5; }
+    .wrap { width: min(1100px, calc(100% - 32px)); margin: auto; }
+    header { padding: 29px 0 18px; border-bottom: 1px solid #30415a; }
+    h1 { font-size: clamp(1.35rem, 2.8vw, 2rem); margin: 0 0 6px; }
+    h2 { margin: 0 0 14px; font-size: 1.1rem; }
+    p { margin: 0 0 12px; }
+    .muted { color: #b3c2d8; }
+    .small { font-size: .87rem; }
+    .notice { margin: 20px 0; background: #1d2838; border-left: 4px solid #d5a950; border-radius: 5px; padding: 13px 16px; color: #f4e1b6; }
+    .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 16px; }
+    .stat, .panel { background: #151f30; border: 1px solid #35445d; border-radius: 10px; }
+    .stat { padding: 12px 16px; }
+    .stat strong { display: block; font-size: 1.35rem; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; padding-bottom: 32px; }
+    .panel { padding: 20px; min-width: 0; }
+    label { display: block; font-weight: 600; font-size: .87rem; margin: 0 0 5px; }
+    .field { margin-bottom: 13px; }
+    input:not([type=checkbox]) { width: 100%; padding: 10px 12px; background: #0c1626; border: 1px solid #596b88; color: #fff; border-radius: 6px; font: inherit; }
+    input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #87bbff; outline-offset: 2px; }
+    .check { display: flex; align-items: start; gap: 10px; margin: 8px 0 18px; }
+    .check label { margin: 0; font-weight: 500; }
+    input[type=checkbox] { width: 20px; height: 20px; margin: 0; accent-color: #83b7f3; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    button { border-radius: 6px; border: 1px solid #6994c5; color: #fff; background: #27598b; padding: 10px 14px; font: inherit; font-weight: 650; cursor: pointer; }
+    button:hover { background: #3474b2; }
+    button.secondary { background: transparent; border-color: #637996; }
+    button.secondary:hover { background: #26364d; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .error { color: #ffaca7; min-height: 1.5rem; font-size: .9rem; margin-top: 9px; }
+    .result-status { font-weight: 700; color: #d0def5; margin-bottom: 9px; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #0a1221; color: #c5e4d4; padding: 16px; margin: 0 0 12px; border-radius: 7px; min-height: 250px; max-height: 530px; overflow: auto; font-size: .82rem; line-height: 1.5; }
+    footer { padding-bottom: 24px; color: #b3c2d8; font-size: .85rem; }
+    a { color: #9dccff; }
+    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr 1fr 1fr; } .panel { padding: 16px; } }
+    @media (max-width: 480px) { .stats { grid-template-columns: 1fr; } .actions button { flex: 1 1 auto; } }
+  </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Hrd Parp Triager Engine</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
-        </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
-        </div>
+  <header><div class="wrap">
+    <h1>HRD/PARP Triager — Demonstration Console</h1>
+    <p class="muted">Synthetic-input, browser-only demonstration of the repository's generic rule-based worker logic.</p>
+  </div></header>
+  <main class="wrap">
+    <aside class="notice" role="note"><strong>Not a clinical decision-support system.</strong> Thresholds 25 and 12 are demonstration values, not validated HRD scores, BRCA classifications or PARP-inhibitor response predictors. Use synthetic identifiers only. No data is transmitted or retained by this page.</aside>
+    <div class="stats" aria-label="Session counters">
+      <div class="stat"><span class="muted small">Current result</span><strong id="current-status">Not run</strong></div>
+      <div class="stat"><span class="muted small">Cases evaluated in this tab</span><strong id="tasks">0</strong></div>
+      <div class="stat"><span class="muted small">Demo alerts generated</span><strong id="alerts">0</strong></div>
     </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
+    <div class="layout">
+      <section class="panel" aria-labelledby="form-title">
+        <h2 id="form-title">Synthetic task evaluation</h2>
+        <form id="audit-form" novalidate>
+          <div class="field"><label for="task-id">Task ID</label><input id="task-id" maxlength="80" required value="TASK-DEMO-001"></div>
+          <div class="field"><label for="target-id">Synthetic target identifier</label><input id="target-id" maxlength="80" required value="SPECIMEN-DEMO-01"></div>
+          <div class="field"><label for="primary">Primary metric (demo threshold: &gt;25)</label><input id="primary" type="number" required step="any" value="29.4"></div>
+          <div class="field"><label for="secondary">Secondary metric (demo threshold: &gt;12)</label><input id="secondary" type="number" required step="any" value="14.8"></div>
+          <div class="field"><label for="descriptor">Status descriptor (keyword matching)</label><input id="descriptor" maxlength="150" required value="DISCORDANT_ANOMALY"></div>
+          <div class="check"><input type="checkbox" id="critical"><label for="critical">Explicit demonstration critical flag</label></div>
+          <div class="actions">
+            <button type="submit">Run local evaluation</button>
+            <button class="secondary" id="nominal" type="button">Load nominal example</button>
+            <button class="secondary" id="critical-example" type="button">Load critical example</button>
+          </div>
+          <p id="form-error" class="error" role="alert"></p>
+        </form>
+      </section>
+      <section class="panel" aria-labelledby="results-title">
+        <h2 id="results-title">Evaluation dossier</h2>
+        <p id="result-status" class="result-status" role="status" aria-live="polite">Run an evaluation to see its result.</p>
+        <pre id="output" tabindex="0" aria-label="JSON result">No evaluation has been performed.</pre>
+        <div class="actions"><button class="secondary" id="download" type="button" disabled>Export JSON</button></div>
+        <p class="muted small" style="margin-top:12px">The browser implementation mirrors the worker rules in <a href="https://github.com/abusuraihsakhri/hrd-parp-triager-agent/blob/master/agents/workers.py">agents/workers.py</a>. It does not call the FastAPI backend and does not generate a cryptographic audit trail.</p>
+      </section>
     </div>
+  </main>
+  <footer class="wrap">Research/software demonstration only · <a href="https://github.com/abusuraihsakhri/hrd-parp-triager-agent">Source repository</a> · No clinical validation claimed</footer>
+  <script>
+  "use strict";
+  (function () {
+    const el = function (id) { return document.getElementById(id); };
+    let latest = null;
+    let evaluations = 0;
+    let alertCount = 0;
+    const flagged = ["DISCORDANT", "ANOMALY", "MUTANT", "VIOLATION", "FAIL", "REJECT"];
 
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
+    function evaluate(input) {
+      const alerts = [];
+      function add(worker, urgency, summary, details) {
+        alerts.push({origin_worker: worker, urgency: urgency, summary: summary, technical_details: details});
+      }
+      if (input.primary_metric > 25) {
+        add("InvariantQCWorker", "ELEVATED_RISK", "Primary Metric Threshold Exceeded",
+          "Primary metric exceeds demonstration threshold 25 (not a clinical reference range).");
+      }
+      if (input.is_critical_flag || input.secondary_metric > 12) {
+        add("SafetyEscalationWorker", input.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
+          "Demonstration escalation flag",
+          "Explicit critical flag or secondary metric over demonstration threshold 12.");
+      }
+      if (flagged.some(function (word) { return input.status_descriptor.toUpperCase().includes(word); })) {
+        add("ProtocolConformanceWorker", "ELEVATED_RISK", "Keyword-based discordance flag",
+          "Status descriptor matched a demonstration keyword; this is not biomarker interpretation.");
+      }
+      const critical = alerts.some(function (a) { return a.urgency === "CRITICAL_STAT_PANIC"; });
+      const elevated = alerts.length > 0;
+      return {
+        task_id: input.task_id,
+        target_identifier: input.target_identifier,
+        overall_urgency: critical ? "CRITICAL_STAT_PANIC" : elevated ? "ELEVATED_RISK" : "ROUTINE",
+        integrity_status: critical ? "RECALIBRATION_REQUIRED" : elevated ? "DISCORDANT_ANOMALY" : "VALIDATED_OPTIMAL",
+        total_alerts: alerts.length,
+        critical_alerts_count: alerts.filter(function (a) { return a.urgency === "CRITICAL_STAT_PANIC"; }).length,
+        alerts: alerts,
+        mode: "browser_demonstration",
+        notice: "Illustrative thresholds only; no clinical inference, no audit signature"
+      };
+    }
 
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Hrd Parp Triager Engine Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "hrd-parp-triager-engine",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
+    el("audit-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      el("form-error").textContent = "";
+      const task = el("task-id").value.trim();
+      const target = el("target-id").value.trim();
+      const descriptor = el("descriptor").value.trim();
+      const p = el("primary").value.trim();
+      const s = el("secondary").value.trim();
+      const primary = Number(p);
+      const secondary = Number(s);
+      if (!task || !target || !descriptor || !p || !s || !Number.isFinite(primary) || !Number.isFinite(secondary)) {
+        el("form-error").textContent = "Provide both synthetic identifiers, a descriptor and two finite numeric values.";
+        return;
+      }
+      const input = {task_id: task, target_identifier: target, primary_metric: primary,
+        secondary_metric: secondary, status_descriptor: descriptor, is_critical_flag: el("critical").checked};
+      latest = evaluate(input);
+      evaluations += 1;
+      alertCount += latest.total_alerts;
+      el("tasks").textContent = String(evaluations);
+      el("alerts").textContent = String(alertCount);
+      el("current-status").textContent = latest.overall_urgency;
+      el("current-status").style.fontSize = ".94rem";
+      el("result-status").textContent = "Local evaluation completed — " + latest.overall_urgency;
+      el("output").textContent = JSON.stringify(latest, null, 2);
+      el("download").disabled = false;
+    });
+    el("nominal").addEventListener("click", function () {
+      el("task-id").value = "TASK-DEMO-NOMINAL";
+      el("target-id").value = "SPECIMEN-DEMO-01";
+      el("primary").value = "10";
+      el("secondary").value = "4";
+      el("descriptor").value = "NOMINAL";
+      el("critical").checked = false;
+      el("form-error").textContent = "";
+    });
+    el("critical-example").addEventListener("click", function () {
+      el("task-id").value = "TASK-DEMO-CRITICAL";
+      el("target-id").value = "SPECIMEN-DEMO-02";
+      el("primary").value = "29.4";
+      el("secondary").value = "14.8";
+      el("descriptor").value = "DISCORDANT_ANOMALY";
+      el("critical").checked = true;
+      el("form-error").textContent = "";
+    });
+    el("download").addEventListener("click", function () {
+      if (!latest) return;
+      const blob = new Blob([JSON.stringify(latest, null, 2) + "\n"], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "hrd-parp-demo-result.json";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
+  }());
+  </script>
 </body>
 </html>
