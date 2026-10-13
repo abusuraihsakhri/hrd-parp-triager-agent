@@ -14,7 +14,7 @@ def create_app():
 
         app = FastAPI(
             title="HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent",
-            description="Integrates BRCA1/2 germline/somatic status with genomic scar indices (LOH, TAI, LST) to predict synthetic lethality and PARP inhibitor benefit.",
+            description="Demonstrates configurable numeric and keyword-based workflow alerts. Not validated for HRD or PARP response prediction.",
             version="2.0.0-PRO",
         )
 
