@@ -11,6 +11,15 @@ from .agents import HRDCoordinator
 coordinator = HRDCoordinator()
 
 
+def parse_csv_boolean(value):
+    text = str(value if value is not None else "").strip().lower()
+    if text in ("true", "1", "yes", "y"):
+        return True
+    if text in ("", "false", "0", "no", "n"):
+        return False
+    raise ValueError("Invalid boolean value in CSV")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="hrd-parp-triager-agent", description="HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -73,18 +82,22 @@ def main(argv=None):
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
 
-        out_fields = fieldnames + ["overall_status", "total_alerts", "stat_critical_alerts", "consensus_summary"]
+        out_fields = list(dict.fromkeys(fieldnames + ["overall_status", "total_alerts", "stat_critical_alerts", "consensus_summary"]))
         out_rows = []
-        for r in rows:
-            case = ClinicalCasePayload(
+        for index, r in enumerate(rows, start=1):
+            try:
+                case = ClinicalCasePayload(
                 case_id=r.get("case_id", "CASE-01"),
                 patient_synthetic_id=r.get("patient_synthetic_id", "SYNTH-01"),
                 primary_metric=float(r.get("metric_primary", r.get("primary_metric", 15.0))),
                 secondary_metric=float(r.get("metric_secondary", r.get("secondary_metric", 5.0))),
                 status_flag=r.get("status_flag", r.get("status_text", "NORMAL")),
-                is_stat=bool(r.get("is_stat", r.get("critical_flag", False))),
+                is_stat=parse_csv_boolean(r.get("is_stat", r.get("critical_flag", False))),
             )
-            dossier = coordinator.process_case(case)
+                dossier = coordinator.process_case(case)
+            except (TypeError, ValueError):
+                print(f"Skipping invalid CSV row {index}", file=sys.stderr)
+                continue
             row_dict = dict(r)
             row_dict["overall_status"] = dossier["overall_status"]
             row_dict["total_alerts"] = dossier["total_alerts"]
