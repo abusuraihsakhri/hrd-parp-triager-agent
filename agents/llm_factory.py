@@ -21,10 +21,4 @@ class LLMFactory:
         prov = str(provider).lower()
         if prov in ["mock", "deterministic", "test"]:
             return MockLLM(system_name)
-        elif prov in ["ollama", "local"]:
-            return MockLLM(system_name)
-        elif prov in ["claude", "anthropic"]:
-            return MockLLM(system_name)
-        elif prov in ["openai", "gpt4"]:
-            return MockLLM(system_name)
-        return MockLLM(system_name)
+        raise ValueError("Model provider not implemented; use the deterministic mock provider")
