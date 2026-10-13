@@ -1,0 +1,4 @@
+task_id,target_identifier,primary_metric,secondary_metric,status_descriptor,is_critical_flag
+SYNTH-001,SAMPLE-001,10,4,NOMINAL,false
+SYNTH-002,SAMPLE-002,30,14,DISCORDANT,false
+SYNTH-003,SAMPLE-003,31,16,ANOMALY,true
