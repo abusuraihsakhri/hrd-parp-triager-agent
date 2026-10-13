@@ -37,7 +37,7 @@ class SafetyEscalationWorker:
                 alert_id=f"SAFE-{uuid.uuid4().hex[:6]}",
                 origin_worker="SafetyEscalationWorker",
                 urgency=UrgencyLevel.CRITICAL_STAT if payload.is_critical_flag else UrgencyLevel.ELEVATED,
-                summary="Critical Safety Interlock Triggered",
+                summary="Demonstration escalation trigger",
                 technical_details=f"CriticalFlag={payload.is_critical_flag} with secondary index {payload.secondary_metric:.2f}.",
                 actionable_remediation="Demonstration flag only: apply an independently validated clinical workflow if this represents a real case.",
             ))
