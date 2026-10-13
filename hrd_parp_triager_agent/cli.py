@@ -87,13 +87,13 @@ def main(argv=None):
         for index, r in enumerate(rows, start=1):
             try:
                 case = ClinicalCasePayload(
-                case_id=r.get("case_id", "CASE-01"),
-                patient_synthetic_id=r.get("patient_synthetic_id", "SYNTH-01"),
-                primary_metric=float(r.get("metric_primary", r.get("primary_metric", 15.0))),
-                secondary_metric=float(r.get("metric_secondary", r.get("secondary_metric", 5.0))),
-                status_flag=r.get("status_flag", r.get("status_text", "NORMAL")),
-                is_stat=parse_csv_boolean(r.get("is_stat", r.get("critical_flag", False))),
-            )
+                    case_id=r.get("case_id", "CASE-01"),
+                    patient_synthetic_id=r.get("patient_synthetic_id", "SYNTH-01"),
+                    primary_metric=float(r.get("metric_primary", r.get("primary_metric", 15.0))),
+                    secondary_metric=float(r.get("metric_secondary", r.get("secondary_metric", 5.0))),
+                    status_flag=r.get("status_flag", r.get("status_text", "NORMAL")),
+                    is_stat=parse_csv_boolean(r.get("is_stat", r.get("critical_flag", False))),
+                )
                 dossier = coordinator.process_case(case)
             except (TypeError, ValueError):
                 print(f"Skipping invalid CSV row {index}", file=sys.stderr)
