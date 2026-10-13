@@ -16,6 +16,13 @@ import uuid
 from typing import Dict, Any, List, Optional
 
 
+def _as_flag(value):
+    """Decode boolean fields from CSV instead of treating nonempty strings as True."""
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in ("1", "true", "yes", "y")
+
+
 class Severity(str):
     INFO = "INFO"
     ADVISORY = "ADVISORY"
@@ -87,7 +94,7 @@ class GenomicScarCalculatorAgent:
     """Specialized Sub-Agent 2 for hrd-parp-triager-agent"""
     def evaluate(self, payload: Dict[str, Any]) -> List[AgentAlert]:
         alerts = []
-        is_critical = bool(payload.get("critical_flag", False))
+        is_critical = _as_flag(payload.get("critical_flag", payload.get("is_stat", False)))
         val2 = float(payload.get("metric_secondary", 5.0))
         if is_critical or val2 > 12.0:
             alerts.append(
@@ -107,7 +114,7 @@ class PARPResponsePredictorAgent:
     """Specialized Sub-Agent 3 for hrd-parp-triager-agent"""
     def evaluate(self, payload: Dict[str, Any]) -> List[AgentAlert]:
         alerts = []
-        status_text = str(payload.get("status_text", "NORMAL")).upper()
+        status_text = str(payload.get("status_text", payload.get("status_flag", "NORMAL"))).upper()
         if "DISCORDANT" in status_text or "SUSPICIOUS" in status_text:
             alerts.append(
                 AgentAlert(
@@ -141,7 +148,7 @@ class HRDCoordinator:
         critical_count = sum(1 for a in all_alerts if a.severity == Severity.CRITICAL)
         warning_count = sum(1 for a in all_alerts if a.severity == Severity.WARNING)
 
-        overall_status = "CRITICAL_ACTION_REQUIRED" if critical_count > 0 else ("WARNING_ACTIVE" if warning_count > 0 else "CONCORDANT_NORMAL")
+        overall_status = "CRITICAL_ACTION_REQUIRED" if critical_count > 0 else ("WARNING_ACTIVE" if all_alerts else "CONCORDANT_NORMAL")
 
         dossier = {
             "system": "hrd-parp-triager-agent",
