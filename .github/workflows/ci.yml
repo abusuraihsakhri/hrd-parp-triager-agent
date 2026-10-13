@@ -24,7 +24,12 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install fastapi uvicorn pydantic pytest
+        pip install -e '.[api,test]'
+
+    - name: Check Python syntax and installed entry point
+      run: |
+        python -m compileall -q agents hrd_parp_triager_agent cli.py hrd_parp_sentinel.py
+        hrd-parp-triager-engine audit --case-id CI-SYNTH-001 --primary 10 --secondary 2 --status NOMINAL
 
     - name: Run Pytest Suite
       run: |
