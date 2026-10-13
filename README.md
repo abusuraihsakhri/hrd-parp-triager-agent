@@ -1,197 +1,58 @@
-# HRD PARP Triager Agent
+# HRD/PARP Triager Agent
 
-> **Domain:** Medical Oncology & Cancer Staging Systems
-> **Reference Guidelines & Standards:** `AJCC Cancer Staging Manual & NCCN Clinical Practice Guidelines`
+A Python and browser-based **research demonstration** of rule-based alert classification and case-workflow orchestration. Includes FastAPI, command-line tools, and a static browser console.
 
-<div align="center">
+**Not validated for patient care.** Despite its name, this project does not calculate LOH/TAI/LST genomic scars, classify BRCA variants against a curated knowledge base, establish HRD status, or predict PARP-inhibitor benefit. Numeric thresholds and descriptor keywords are illustrative, not guideline cut-offs. Do not submit real patient identifiers or use outputs for diagnosis, treatment, or clinical escalation.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
+## Browser demonstration
 
-</div>
+Open [web/index.html](web/index.html) in a modern browser. Supply synthetic task/target IDs, two numeric metrics, a status descriptor, and optionally a critical flag. The page displays an evaluation dossier and allows JSON export. It runs entirely in-browser using JavaScript, with no backend, account, Python runtime, Pyodide, or external requests. Input values are not uploaded or stored. The GitHub Pages workflow publishes the folder when Pages is correctly enabled.
 
----
+This browser mirrors the **supervisor demonstration rules**: primary metric greater than 25, secondary metric greater than 12, or status containing DISCORDANT, ANOMALY, MUTANT, VIOLATION, FAIL, or REJECT yields an elevated alert. An explicit critical flag yields a critical alert. These are not clinical thresholds. The page does **not** create HMAC signatures.
 
-## 📖 What It Does
+## Python installation
 
-**HRD PARP Triager Agent** is an advanced analytical and computational platform implementing Homologous Recombination Deficiency & PARP Inhibitor Response evaluation. It integrates BRCA1/2 germline/somatic status with genomic scar indices (LOH, TAI, LST) to predict synthetic lethality and PARP inhibitor benefit.
+Python 3.9 or newer is required. From the repository directory:
 
----
+    python -m pip install -e '.[api,test]'
+    python -m pytest -q
 
-## ⚙️ Key Capabilities & Algorithmic Modules
+### Supervisor CLI and API
 
-### 🔬 Core Algorithmic & Evaluation Engines
+    python cli.py audit --task-id SYNTH-001 --target SAMPLE-001 --primary 28 --secondary 14 --status DISCORDANT
+    python cli.py batch -i examples/supervisor_sample.csv -o results.csv
+    python cli.py chat "status"
+    python cli.py serve --host 127.0.0.1 --port 8000
 
-- **`Severity`** — dedicated module for severity evaluation and state verification.
-- **`DomainKnowledgeRegistry`**: Enterprise domain rules, guideline matrices, and evidence benchmarks.
-- **`AgentAlert`** — dedicated module for agent alert evaluation and state verification.
-- **`BRCAMutationClassifierAgent`**: Specialized Sub-Agent 1 for BRCA mutation classification.
-- **`GenomicScarCalculatorAgent`**: Specialized Sub-Agent 2 for genomic scar index calculation.
-- **`PARPResponsePredictorAgent`**: Specialized Sub-Agent 3 for PARP inhibitor response prediction.
+The API offers GET /health, GET /metrics, POST /api/audit, POST /api/chat, and GET /api/audit/logs. Interactive documentation is at http://127.0.0.1:8000/docs. Direct server entry point: uvicorn agents.api:app --host 127.0.0.1 --port 8000.
 
-### 🤖 Multi-Agent Architecture
+**The API has no authentication** and should not be exposed to an untrusted network without a separate security boundary. The batch CSV requires task_id, target_identifier, and primary_metric headers; optional fields are secondary_metric, status_descriptor, and is_critical_flag. Invalid records are skipped with generic errors; output paths are restricted to the current working directory or system temporary directory.
 
-The system uses a **supervisor orchestrator** pattern:
-- **`SystemSupervisor`** — coordinates multiple specialized workers.
-- **`InvariantQCWorker`** — primary mathematical & protocol boundary auditor.
-- **`SafetyEscalationWorker`** — safety boundary, toxicity & emergency interlock worker.
-- **`ProtocolConformanceWorker`** — spec conformance, anomaly triage & discordance checker.
+The HMAC audit trail is **in-memory only**. Set AUDIT_SECRET_KEY to a securely generated secret when running multiple instances with a consistent signing key, but logs are not persisted across restarts. The verify-audit CLI command checks only the current process's trail: starting a new process does not recover old logs. Regex-based identifier screening is limited; it does **not** constitute de-identification, HIPAA certification, or a guarantee of absent PHI.
 
----
+### Other retained entry points
 
-## 💻 CLI Quickstart & Usage
+For compatibility, the repository retains different rules and schemas:
 
-### 1. Guided Interactive Mode
-```bash
-python cli.py
-```
+- Legacy sentinel: python hrd_parp_sentinel.py audit, or python hrd_parp_sentinel.py batch -i sample.csv; uses metric_primary and metric_secondary.
+- Packaged demonstration: python hrd_parp_triager_agent_app.py audit, or python hrd_parp_triager_agent_app.py serve; uses primary_metric and secondary_metric.
+- Synthetic load test: python simulator.py 100 (takes a positional count; no --tasks or --concurrency options).
 
-### 2. Direct Parameterized Evaluation
-```bash
-python cli.py audit --task-id <value> --target <value> --primary <value> --secondary <value>
-```
+The three rule sets are **not mathematically equivalent** and must not be interpreted as interchangeable clinical classifications.
 
-### 3. Batch CSV Processing
-```bash
-python cli.py batch -i sample.csv -o results.csv
-```
+## Docker
 
-### 4. Verify Audit Trail Integrity
-```bash
-python cli.py verify-audit
-```
+    docker build -t hrd-parp-triager-agent .
+    docker run --rm -p 127.0.0.1:8000:8000 -e AUDIT_SECRET_KEY="replace-with-long-random-secret" hrd-parp-triager-agent
 
-### 5. Launch REST API Server
-```bash
-python cli.py serve --host 127.0.0.1 --port 8000
-```
+The container uses a non-root account. The Docker Compose file remains available for local use; review its port binding before deployment.
 
-### Parameter Reference
-- `--task-id`: Specifies input measurement or parameter value.
-- `--target`: Specifies input measurement or parameter value.
-- `--primary`: Primary metric value (float).
-- `--secondary`: Secondary metric value (float).
-- `--critical`: Trigger emergency/critical flag.
-- `--status`: Status/phenotype descriptor.
+## Testing, privacy and technology
 
-### Input Data Schema
+CI installs the package with optional API/test dependencies, runs Python tests across 3.10–3.12, checks Python syntax and the installed CLI, and runs a dependency-free Node.js smoke test for the web interface. Locally, use node tests/web_smoke.cjs. The stack is Python, Pydantic, optional FastAPI/Uvicorn, and plain HTML/CSS/JavaScript. Modern desktop and mobile browsers with ES2017 support are expected; real-device coverage has not been confirmed.
 
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `case_id` | Parameter / observation metric | Required |
-| `patient_synthetic_id` | Parameter / observation metric | Required |
-| `metric_primary` | Parameter / observation metric | Required |
-| `metric_secondary` | Parameter / observation metric | Required |
-| `is_stat` | Parameter / observation metric | Required |
-| `status_flag` | Parameter / observation metric | Required |
+Use synthetic data only. The repository is not a production-grade clinical data-processing or decision-support system.
 
----
+## License
 
-## 🛡️ Security & Enterprise Architecture
-
-* **Zero-PHI Outbound Interceptor:** Active AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
-* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
-* **Path Traversal Protection:** CLI batch processing validates output paths against current working directory.
-* **Input Validation:** Rejects NaN, Inf, and malformed payloads at the Pydantic model layer.
-
-### Environment Variables
-
-| Variable | Description | Default |
-|:---------|:------------|:--------|
-| `AUDIT_SECRET_KEY` | Secret key for HMAC-SHA256 audit signing | Ephemeral random (warns if unset) |
-| `MODEL_PROVIDER` | LLM provider (`mock`, `ollama`, `claude`, `openai`) | `mock` |
-
----
-
-## 🧪 Testing & Verification
-
-Run the automated test suite:
-
-```bash
-pytest -v
-```
-
-Execute high-throughput batch simulation benchmarks:
-
-```bash
-python simulator.py --tasks 1000 --concurrency 8
-```
-
-### Test Coverage
-
-- **PHI Guard Enforcement** — verifies detection of MRNs, SSNs, phone numbers, emails, DOBs, and patient names.
-- **Input Validation** — rejects NaN, Inf, empty identifiers, and whitespace-only strings.
-- **Audit Trail Integrity** — validates HMAC-SHA256 chain integrity and genesis block references.
-- **CLI Security** — path traversal protection and error handling for batch processing.
-- **Worker & Supervisor** — consensus logic and alert generation.
-
----
-
-## 🐳 Container Deployment
-
-```bash
-docker build -t hrd-parp-triager-agent .
-docker run -p 8000:8000 -e AUDIT_SECRET_KEY=your-secret-key hrd-parp-triager-agent
-```
-
-Or using Docker Compose:
-
-```bash
-AUDIT_SECRET_KEY=your-secret-key docker-compose up
-```
-
----
-
-## 📁 Project Structure
-
-```
-hrd-parp-triager-agent/
-├── agents/                       # Core agent modules
-│   ├── __init__.py
-│   ├── api.py                    # FastAPI REST server
-│   ├── base.py                   # Security, PHI guard, audit trail
-│   ├── learning.py               # Bayesian calibration engine
-│   ├── llm_factory.py            # LLM provider factory
-│   ├── metrics.py                # Prometheus metrics collector
-│   ├── models.py                 # Pydantic data models
-│   ├── streamer.py               # WebSocket telemetry
-│   ├── supervisor.py             # Supervisor orchestrator
-│   └── workers.py                # Specialized worker agents
-├── hrd_parp_triager_agent/       # Clinical agent module
-│   ├── __init__.py
-│   ├── agents.py                 # BRCA, genomic scar, PARP agents
-│   ├── cli.py                    # Clinical CLI
-│   ├── engine.py                 # Clinical domain engine
-│   ├── models.py                 # Clinical data models
-│   └── server.py                 # Clinical FastAPI server
-├── tests/                        # Test suite
-│   ├── test_enrichment.py        # Enrichment engine tests
-│   ├── test_hrd_parp_triager_agent.py  # Core agent tests
-│   └── test_security_and_validation.py # Security & validation tests
-├── web/
-│   └── index.html                # Operations console UI
-├── cli.py                        # Main CLI entry point
-├── enrichment.py                 # Domain enrichment engines
-├── hrd_parp_sentinel.py          # Sentinel agent (standalone)
-├── simulator.py                  # High-throughput simulator
-├── benchmark_dataset.json        # Golden benchmark test cases
-├── sample.csv                    # Sample batch input
-├── sample_payload.json           # Sample API payload
-├── Dockerfile                    # Container build
-├── docker-compose.yml            # Multi-container orchestration
-├── openapi_spec.json             # OpenAPI 3.1 specification
-└── pyproject.toml                # Project metadata & dependencies
-```
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+MIT; see [LICENSE](LICENSE).

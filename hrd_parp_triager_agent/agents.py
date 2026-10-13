@@ -93,7 +93,7 @@ class HRDCoordinator:
             "stat_critical_alerts": stat_count,
             "warning_alerts": warn_count,
             "alerts": [a.to_dict() for a in all_alerts],
-            "guideline_standard": "AMP / ASCO / CAP Somatic Variant Tiers",
+            "guideline_standard": "Illustrative rules; no validated clinical guideline implemented",
             "consensus_summary": f"Multi-agent supervision completed across 3 sub-agents with status [{status.value}].",
         }
 
@@ -105,6 +105,6 @@ class HRDCoordinator:
         if "status" in q or "summary" in q:
             return f"HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent currently tracking {len(self.case_registry)} cases in on-premises memory."
         elif "guideline" in q or "standard" in q:
-            return "Active clinical surveillance operates under AMP / ASCO / CAP Somatic Variant Tiers validated protocols."
+            return "Only illustrative threshold rules are implemented; consult independently validated clinical guidance."
         else:
-            return f"HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent executive agent online. Zero-PHI air-gapped monitoring active."
+            return f"HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent executive agent online. Demonstration rules available; PHI compliance is not certified."

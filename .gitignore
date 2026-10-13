@@ -39,3 +39,9 @@ output.csv
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local secrets and private configuration
+.env
+.env.*
+!.env.example
+*.pem

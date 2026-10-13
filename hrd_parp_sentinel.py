@@ -16,6 +16,13 @@ import uuid
 from typing import Dict, Any, List, Optional
 
 
+def _as_flag(value):
+    """Decode boolean fields from CSV instead of treating nonempty strings as True."""
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in ("1", "true", "yes", "y")
+
+
 class Severity(str):
     INFO = "INFO"
     ADVISORY = "ADVISORY"
@@ -31,15 +38,15 @@ class Severity(str):
 class DomainKnowledgeRegistry:
     """Enterprise domain rules, guideline matrices, and evidence benchmarks."""
     SYSTEM_VERSION = "2.0.0-PRO-CLINICAL"
-    ZERO_PHI_COMPLIANCE = True
-    HIPAA_SAFE_HARBOR = "ACTIVE_ON_PREMISES"
+    ZERO_PHI_COMPLIANCE = False
+    HIPAA_SAFE_HARBOR = "NOT_ASSESSED"
 
     @staticmethod
     def audit_security_and_integrity(payload: Dict[str, Any]) -> List[str]:
         warnings = []
         for key in payload.keys():
             if any(phi_keyword in key.lower() for phi_keyword in ["patient_name", "ssn", "mrn_raw", "dob_raw"]):
-                warnings.append(f"PHI_DEFENSE_TRIGGERED: Direct identifier '{key}' masked to synthetic token.")
+                warnings.append(f"PHI_DEFENSE_TRIGGERED: Direct identifier '{key}' is present; automated redaction is not provided.")
         return warnings
 
 class AgentAlert:
@@ -87,7 +94,7 @@ class GenomicScarCalculatorAgent:
     """Specialized Sub-Agent 2 for hrd-parp-triager-agent"""
     def evaluate(self, payload: Dict[str, Any]) -> List[AgentAlert]:
         alerts = []
-        is_critical = bool(payload.get("critical_flag", False))
+        is_critical = _as_flag(payload.get("critical_flag", payload.get("is_stat", False)))
         val2 = float(payload.get("metric_secondary", 5.0))
         if is_critical or val2 > 12.0:
             alerts.append(
@@ -107,7 +114,7 @@ class PARPResponsePredictorAgent:
     """Specialized Sub-Agent 3 for hrd-parp-triager-agent"""
     def evaluate(self, payload: Dict[str, Any]) -> List[AgentAlert]:
         alerts = []
-        status_text = str(payload.get("status_text", "NORMAL")).upper()
+        status_text = str(payload.get("status_text", payload.get("status_flag", "NORMAL"))).upper()
         if "DISCORDANT" in status_text or "SUSPICIOUS" in status_text:
             alerts.append(
                 AgentAlert(
@@ -141,7 +148,7 @@ class HRDCoordinator:
         critical_count = sum(1 for a in all_alerts if a.severity == Severity.CRITICAL)
         warning_count = sum(1 for a in all_alerts if a.severity == Severity.WARNING)
 
-        overall_status = "CRITICAL_ACTION_REQUIRED" if critical_count > 0 else ("WARNING_ACTIVE" if warning_count > 0 else "CONCORDANT_NORMAL")
+        overall_status = "CRITICAL_ACTION_REQUIRED" if critical_count > 0 else ("WARNING_ACTIVE" if all_alerts else "CONCORDANT_NORMAL")
 
         dossier = {
             "system": "hrd-parp-triager-agent",
@@ -164,9 +171,9 @@ class HRDCoordinator:
         if "summary" in q or "status" in q:
             return f"HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent currently tracking {len(self.case_registry)} cases in local air-gapped memory."
         elif "guidelines" in q or "protocol" in q:
-            return "All sub-agents operate under validated consensus clinical algorithms and CAP/CLSI/NCCN/WHO standards."
+            return "This demonstration does not implement validated clinical guidelines or standards."
         else:
-            return f"HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent executive agent online. Continuous supervisory monitoring active across all domain parameters."
+            return f"HRD-Sentinel: Homologous Recombination Deficiency & PARP Inhibitor Response Agent executive agent online. Illustrative rule-based evaluation available; no continuous monitoring is active."
 
 
 coordinator = HRDCoordinator()

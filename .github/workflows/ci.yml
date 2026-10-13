@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ master, main ]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-and-audit:
     runs-on: ubuntu-latest
@@ -24,17 +28,28 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install fastapi uvicorn pydantic pytest
+        pip install -e '.[api,test]'
+
+    - name: Check Python syntax and installed entry point
+      run: |
+        python -m compileall -q agents hrd_parp_triager_agent cli.py hrd_parp_sentinel.py
+        hrd-parp-triager-engine audit --case-id CI-SYNTH-001 --primary 10 --secondary 2 --status NOMINAL
 
     - name: Run Pytest Suite
       run: |
         pytest -v
 
-    - name: Security SAST & Zero-PHI Audit
+    - name: Run browser demonstration smoke test
+      run: node tests/web_smoke.cjs
+
+    - name: Audit signature tamper check
       run: |
-        python -c "
-        from agents.base import PHIGuard, AuditLogger
-        import pytest
-        assert AuditLogger.verify_integrity() is True
-        print('Security & Zero-PHI Audit Passed!')
-        "
+        python - <<'PY'
+        from agents.base import AuditTrail
+        trail = AuditTrail(secret_key="ci-test-only")
+        trail.log("CI", "tester", "CHECK", {"sample": 1})
+        assert trail.verify_integrity()
+        trail.logs[0]["event_type"] = "TAMPERED"
+        assert not trail.verify_integrity()
+        print("Audit HMAC integrity check passed")
+        PY

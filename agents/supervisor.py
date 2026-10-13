@@ -3,7 +3,8 @@ Supervisor Orchestrator & Operations Intelligence for Hrd Parp Triager Agent.
 Domain: Clinical & Biomedical AI
 """
 import uuid
-from typing import List
+import json
+from typing import Dict, List
 from .base import AuditLogger, PHIGuard
 from .models import SystemTaskPayload, AgentAlert, ConsensusDossier, UrgencyLevel, SystemIntegrityStatus
 from .workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
@@ -25,6 +26,9 @@ class SystemSupervisor:
         PHIGuard.assert_no_phi(payload.task_id)
         PHIGuard.assert_no_phi(payload.target_identifier)
         PHIGuard.assert_no_phi(payload.status_descriptor)
+        PHIGuard.assert_no_phi(payload.timestamp)
+        PHIGuard.assert_no_phi(json.dumps(payload.attributes, ensure_ascii=False, default=str))
+        PHIGuard.assert_no_phi(actor)
 
         # Multi-worker evaluations
         all_alerts: List[AgentAlert] = []

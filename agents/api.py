@@ -3,7 +3,7 @@ FastAPI REST API Server for Hrd Parp Triager Agent.
 """
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from .base import AuditLogger
+from .base import AuditLogger, SecurityException
 from .models import SystemTaskPayload
 from .supervisor import SystemSupervisor
 
@@ -11,7 +11,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Hrd Parp Triager Agent API",
-    description="Enterprise Distributed Component Platform (Clinical & Biomedical AI)",
+    description="Rule-based research demonstration; not validated for clinical decisions",
     version="3.0.0-ENTERPRISE",
 )
 
@@ -22,7 +22,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "hrd-parp-triager-agent", "domain": "Clinical & Biomedical AI", "standard": "CAP / CLSI / ISO Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "hrd-parp-triager-agent", "domain": "Clinical & Biomedical AI", "standard": "Demonstration rules; not clinically validated", "version": "3.0.0-ENTERPRISE"}
 
 
 @app.get("/metrics")
@@ -36,7 +36,10 @@ def metrics():
 
 @app.post("/api/audit")
 def api_audit(payload: SystemTaskPayload):
-    dossier = supervisor.process_task(payload)
+    try:
+        dossier = supervisor.process_task(payload)
+    except SecurityException:
+        raise HTTPException(status_code=422, detail="Unsupported direct identifier in submitted data") from None
     return dossier.to_dict()
 
 
@@ -45,8 +48,8 @@ def api_chat(req: ChatRequest):
     try:
         ans = supervisor.query_supervisory_chat(req.query)
         return {"response": ans}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except SecurityException:
+        raise HTTPException(status_code=422, detail="Unsupported direct identifier in submitted data") from None
 
 
 @app.get("/api/audit/logs")

@@ -4,6 +4,7 @@ Domain: Precision Oncology
 Standard: AMP / ASCO / CAP Somatic Variant Tiers
 """
 import datetime
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Any
@@ -34,6 +35,14 @@ class ClinicalCasePayload:
     biomarkers: Dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
+    def __post_init__(self):
+        for name in ("primary_metric", "secondary_metric"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                raise ValueError(f"{name} must be a finite number")
+        if not self.case_id.strip() or not self.patient_synthetic_id.strip():
+            raise ValueError("Synthetic case identifiers must not be empty")
+
 
 @dataclass
 class AgentAlert:
@@ -43,7 +52,7 @@ class AgentAlert:
     title: str
     clinical_finding: str
     actionable_recommendation: str
-    guideline_citation: str = "AMP / ASCO / CAP Somatic Variant Tiers"
+    guideline_citation: str = "Illustrative rules; no validated clinical guideline implemented"
     timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:

@@ -33,5 +33,24 @@ def test_cli():
 
 def test_domain_registry():
     from hrd_parp_sentinel import DomainKnowledgeRegistry
-    assert DomainKnowledgeRegistry.ZERO_PHI_COMPLIANCE is True
+    assert DomainKnowledgeRegistry.ZERO_PHI_COMPLIANCE is False
     assert "PRO" in DomainKnowledgeRegistry.SYSTEM_VERSION
+
+def test_legacy_csv_aliases_and_advisory_status():
+    coord = HRDCoordinator()
+    normal = coord.audit_case({
+        "case_id": "SYNTH-NORMAL", "metric_primary": "10",
+        "metric_secondary": "2", "is_stat": "False", "status_flag": "NORMAL"
+    })
+    assert normal["overall_status"] == "CONCORDANT_NORMAL"
+    flagged = coord.audit_case({
+        "case_id": "SYNTH-ADVISORY", "metric_primary": "10",
+        "metric_secondary": "2", "is_stat": "False", "status_flag": "DISCORDANT"
+    })
+    assert flagged["total_alerts"] == 1
+    assert flagged["overall_status"] == "WARNING_ACTIVE"
+    critical = coord.audit_case({
+        "case_id": "SYNTH-STAT", "metric_primary": "10",
+        "metric_secondary": "2", "is_stat": "True", "status_flag": "NORMAL"
+    })
+    assert critical["overall_status"] == "CRITICAL_ACTION_REQUIRED"
