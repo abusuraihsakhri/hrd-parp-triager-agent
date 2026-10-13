@@ -17,11 +17,18 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 requires-python = ">=3.9"
-dependencies = []
+dependencies = ["pydantic>=2.0,<3"]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.100,<1", "uvicorn>=0.23,<1"]
+test = ["pytest>=7,<10", "httpx>=0.24,<1"]
 
 [project.scripts]
 hrd-parp-triager-engine = "hrd_parp_triager_agent.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/abusuraihsakhri/hrd-parp-triager-engine"
-Repository = "https://github.com/abusuraihsakhri/hrd-parp-triager-engine.git"
+Homepage = "https://github.com/abusuraihsakhri/hrd-parp-triager-agent"
+Repository = "https://github.com/abusuraihsakhri/hrd-parp-triager-agent"
+
+[tool.setuptools.packages.find]
+include = ["agents*", "hrd_parp_triager_agent*"]
